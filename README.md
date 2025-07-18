@@ -1,4 +1,4 @@
-# Hiring_bot
+# Hiring_bot mayank
 🤖 Hiring Assistant Chatbot
 
 📌 Project Overview The Hiring Assistant Chatbot is a streamlined, AI-powered Streamlit application built using OpenAI's GPT model to simulate a technical recruiter. It gathers candidate information, dynamically generates tailored technical interview questions based on the candidate’s experience and selected tech stack, evaluates answers, and provides an eligibility verdict for the desired role.
