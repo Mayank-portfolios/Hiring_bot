@@ -1,0 +1,138 @@
+#Imported the library
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI  
+from langchain_core.prompts import ChatPromptTemplate
+import streamlit as st
+#run the envirnment to perform operation
+load_dotenv()
+
+#here is the model 
+llm = ChatOpenAI(
+    model="gpt-3.5-turbo",
+    temperature=0.1,
+    max_tokens=None,
+)
+st.title("Hiring bOt")
+
+st.header("FiLL THIS fORM")
+st.subheader("To start Your Screaning")
+
+#candidate details 
+name = st.text_input("Full Name*")
+email = st.text_input("Email*")
+phone = st.text_input("Phone Number*")
+location = st.text_input("Current Location*")
+experience=st.number_input("Expeirence(Rating)",min_value=0 , max_value=10)
+desired_position=st.text_input("Desired Position*")
+Tech_stack=st.selectbox("Choose Programing language*",["python","go-lang","c++","java","C++","Html","css"])
+st.success(f"wow you choose {Tech_stack} language")
+st.subheader("its Time To test Your Skills")
+
+
+
+#Here is the prompt which give question
+prompt_template = ChatPromptTemplate([
+    ("system", "You are a Good Technical Recruiter "),
+    ("user", "Make a interview 4-5 question {topic} according to {experience} year of experience")
+])
+
+result=prompt_template.invoke({"topic":Tech_stack,"experience":experience})
+h=llm.invoke(result)
+
+#the question in in list
+question=[]
+question.append(h.content)
+
+#retrieve the question form list
+for sequence in question:
+    rows = sequence.split('\n') 
+#question 1
+for linea in rows[0:3]:
+    st.markdown(linea)
+first= st.text_input("Enter your first answer",key="1")  
+#question 2
+for lineb in rows[3:4]:
+    st.markdown(lineb)
+second = st.text_input("Enter your Second answer",key="2")
+
+#question 3
+for linec in rows[4:5]:
+    st.markdown(linec)
+third= st.text_input("Enter your third answer",key="3") 
+
+#question 4
+for lined in rows[5:6]:
+    st.markdown(lined)
+
+#question 5
+fourth= st.text_input("Enter your fourth answer",key="4ourth_Answer") 
+for linee in rows[6:7]:
+    st.markdown(linee)
+five= st.text_input("Enter your Fiveth Answer",key="5ive_answer")
+
+#Here  the catch where the answer should be store in the txt file
+candidate_Answers=[]
+candidate_Answers.append(first)
+candidate_Answers.append(second)
+candidate_Answers.append(third)
+candidate_Answers.append(fourth)
+candidate_Answers.append(five)
+
+#To submit the response in file.
+
+if st.button("Submit"):
+    st.success("Your response has been recorded ✅")
+    with open("interview.txt", "w") as file:
+        for answer in candidate_Answers:
+            file.write(answer + "\n")
+    st.info("Please wait for a revert.")
+
+
+evaluation_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a senior technical interviewer."),
+    ("user", "The interview question was:\n{question}\n\nCandidate_answer:\n{answer}\n\nEvaluate the answer and give feedback and it is eligible for this Role")
+    ])
+
+#evaluation button To decide   Wheather the candidate is eligibe for this role?    
+
+if st.button("Evalute my input"):
+    eval_input = evaluation_prompt.invoke({"question": rows[0], "answer": first})
+    evaluation1 = llm.invoke(eval_input)
+    
+    eval_input = evaluation_prompt.invoke({"question": rows[1], "answer": second})
+    evaluation2 = llm.invoke(eval_input)
+
+    eval_input = evaluation_prompt.invoke({"question": rows[2], "answer": third})
+    evaluation3 = llm.invoke(eval_input)
+
+    eval_input = evaluation_prompt.invoke({"question": rows[3], "answer": fourth})
+    evaluation4 = llm.invoke(eval_input)
+
+    eval_input = evaluation_prompt.invoke({"question": rows[4], "answer": five})
+    evaluation5 = llm.invoke(eval_input)
+
+    st.markdown("### Here Is Our feedback ")
+
+ #The response save on this new list
+
+    all_answers=[]
+    all_answers.append(evaluation1)
+    all_answers.append(evaluation2)
+    all_answers.append(evaluation3)
+    all_answers.append(evaluation4)
+    all_answers.append(evaluation5)
+
+    #the final prompt which take decision
+
+    final_decision_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a senior hiring manager reviewing interview results."),
+        ("user", "Here is the interviewer's feedback:\n{feedback}\nBased on this, decide if the candidate is eligible for the role and give a final Clarificattion.")
+        ])
+
+    decision_input = final_decision_prompt.invoke({"feedback": all_answers})
+    result = llm.invoke(decision_input)
+
+    st.markdown("### ✅ Final Evaluation Result")
+    st.info(result.content)
+    st.success("Thanks for applying !!")
+    # this is the end Of this project
